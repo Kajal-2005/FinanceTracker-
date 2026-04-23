@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💰 Personal Finance Tracker</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset & Base ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      text-align: center;
+      padding: 30px 20px 20px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border-radius: 16px;
+      color: white;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .app-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 6px; }
+    .app-header p  { font-size: 0.95rem; opacity: 0.8; }
+
+    /* ── Summary Cards ── */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card { padding: 24px; border-radius: 14px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .card-label { font-size: 0.85rem; opacity: 0.9; margin-bottom: 8px; }
+    .card h2 { font-size: 1.8rem; font-weight: 700; }
+    .balance-card.positive { background: linear-gradient(135deg, #0f3460, #533483); }
+    .balance-card.negative { background: linear-gradient(135deg, #c0392b, #8e1a1a); }
+    .income-card  { background: linear-gradient(135deg, #1a7a4a, #27ae60); }
+    .expense-card { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+
+    /* ── Main Layout ── */
+    .main-content {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .main-content { grid-template-columns: 1fr; }
+      .app-header h1 { font-size: 1.5rem; }
+    }
+
+    /* ── Form Card ── */
+    .form-card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .form-card h3 { font-size: 1.1rem; margin-bottom: 18px; color: #1a1a2e; }
+    .form-card label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+      margin-top: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-card input,
+    .form-card select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e8e8e8;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Poppins', sans-serif;
+      transition: border-color 0.2s;
+      background: #fafafa;
+    }
+    .form-card input:focus,
+    .form-card select:focus { outline: none; border-color: #533483; background: white; }
+
+    .type-toggle { display: flex; gap: 10px; margin-top: 2px; }
+    .type-toggle button {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e8e8e8;
+      border-radius: 8px;
+      background: #fafafa;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .type-toggle button:hover { border-color: #aaa; }
+    .type-toggle .active.expense-btn { background: #fdecea; border-color: #e74c3c; color: #c0392b; font-weight: 600; }
+    .type-toggle .active.income-btn  { background: #eafaf1; border-color: #27ae60; color: #1a7a4a; font-weight: 600; }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: linear-gradient(135deg, #1a1a2e, #533483);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .submit-btn:hover  { opacity: 0.9; }
+    .submit-btn:active { transform: scale(0.98); }
+
+    .error-msg {
+      background: #fdecea;
+      color: #c0392b;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+
+    /* ── Right Panel ── */
+    .right-panel { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Transaction List ── */
+    .transaction-list {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .transaction-list h3 { font-size: 1.1rem; margin-bottom: 16px; color: #1a1a2e; }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: transform 0.15s;
+    }
+    .transaction-item:hover { transform: translateX(3px); }
+    .income-item  { background: #eafaf1; border-left: 4px solid #27ae60; }
+    .expense-item { background: #fdecea; border-left: 4px solid #e74c3c; }
+
+    .transaction-left { display: flex; align-items: center; gap: 12px; }
+    .transaction-emoji { font-size: 1.5rem; }
+    .transaction-desc { font-weight: 600; font-size: 0.95rem; color: #222; }
+    .transaction-meta { font-size: 0.78rem; color: #888; margin-top: 2px; }
+    .transaction-right { display: flex; align-items: center; gap: 12px; }
+    .transaction-amount { font-weight: 700; font-size: 1rem; }
+    .green { color: #1a7a4a; }
+    .red   { color: #c0392b; }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      padding: 4px;
+    }
+    .delete-btn:hover { opacity: 1; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #aaa;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    /* ── Category Summary ── */
+    .category-summary {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .category-summary h3 { font-size: 1.1rem; margin-bottom: 16px; color: #1a1a2e; }
+    .category-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 140px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+    }
+    .progress-bar-bg {
+      background: #f0f0f0;
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #533483, #e74c3c);
+      border-radius: 20px;
+      transition: width 0.4s ease;
+    }
+    .category-amount { text-align: right; font-weight: 600; color: #555; font-size: 0.82rem; }
+
+    /* ── Footer ── */
+    .app-footer { text-align: center; padding: 24px; color: #aaa; font-size: 0.82rem; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <!-- React via CDN — no install needed -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Babel — lets us write JSX directly in the browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+
+    // ============================================================
+    //  ANGULAR-INSPIRED SERVICE
+    //  In Angular, a Service class handles all data & logic.
+    //  Components just call the service — clean separation!
+    // ============================================================
+    class FinanceService {
+      constructor() {
+        const saved = localStorage.getItem("finance_data");
+        this.transactions = saved ? JSON.parse(saved) : [];
+      }
+
+      _save() {
+        localStorage.setItem("finance_data", JSON.stringify(this.transactions));
+      }
+
+      addTransaction(description, amount, type, category) {
+        const t = {
+          id: Date.now(),
+          description,
+          amount: parseFloat(amount),
+          type,
+          category,
+          date: new Date().toLocaleDateString("en-IN")
+        };
+        this.transactions.push(t);
+        this._save();
+        return [...this.transactions];
+      }
+
+      deleteTransaction(id) {
+        this.transactions = this.transactions.filter(t => t.id !== id);
+        this._save();
+        return [...this.transactions];
+      }
+
+      getAll()         { return [...this.transactions]; }
+      getTotalIncome() { return this.transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0); }
+      getTotalExpense(){ return this.transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0); }
+      getBalance()     { return this.getTotalIncome() - this.getTotalExpense(); }
+
+      formatRupees(amount) {
+        return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
+      }
+
+      getCategorySummary() {
+        const summary = {};
+        this.transactions.filter(t => t.type === "expense").forEach(t => {
+          summary[t.category] = (summary[t.category] || 0) + t.amount;
+        });
+        return summary;
+      }
+    }
+
+    // One shared instance — like Angular's singleton service
+    const financeService = new FinanceService();
+
+    // ============================================================
+    //  REACT COMPONENTS
+    //  Each function below is a "Component" — a small piece of UI
+    // ============================================================
+    const { useState } = React;
+
+    const categoryEmoji = {
+      "Food":"🍔", "Transport":"🚗", "Shopping":"🛍️", "Bills":"💡",
+      "Health":"🏥", "Education":"📚", "Salary":"💼", "Freelance":"💻",
+      "Gift":"🎁", "Other":"📦"
+    };
+
+    // ── Summary Cards ────────────────────────────────────────────
+    function SummaryCards() {
+      const balance = financeService.getBalance();
+      return (
+        <div className="summary-cards">
+          <div className={`card balance-card ${balance < 0 ? "negative" : "positive"}`}>
+            <p className="card-label">💰 Current Balance</p>
+            <h2>{financeService.formatRupees(balance)}</h2>
+          </div>
+          <div className="card income-card">
+            <p className="card-label">📈 Total Income</p>
+            <h2>{financeService.formatRupees(financeService.getTotalIncome())}</h2>
+          </div>
+          <div className="card expense-card">
+            <p className="card-label">📉 Total Expenses</p>
+            <h2>{financeService.formatRupees(financeService.getTotalExpense())}</h2>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Add Transaction Form ─────────────────────────────────────
+    function AddTransactionForm({ onAdd }) {
+      const [description, setDescription] = useState("");
+      const [amount,      setAmount]      = useState("");
+      const [type,        setType]        = useState("expense");
+      const [category,    setCategory]    = useState("Food");
+      const [error,       setError]       = useState("");
+
+      const incomeCategories  = ["Salary", "Freelance", "Gift", "Other"];
+      const expenseCategories = ["Food", "Transport", "Shopping", "Bills", "Health", "Education", "Other"];
+      const categories = type === "income" ? incomeCategories : expenseCategories;
+
+      function handleSubmit(e) {
+        e.preventDefault();
+        if (!description.trim())                          { setError("Please enter a description."); return; }
+        if (!amount || isNaN(amount) || Number(amount) <= 0) { setError("Please enter a valid amount."); return; }
+        setError("");
+        onAdd(description, amount, type, category);
+        setDescription(""); setAmount(""); setType("expense"); setCategory("Food");
+      }
+
+      return (
+        <div className="form-card">
+          <h3>➕ Add Transaction</h3>
+          {error && <p className="error-msg">⚠️ {error}</p>}
+          <form onSubmit={handleSubmit}>
+            <label>Description</label>
+            <input type="text" placeholder="e.g. Grocery shopping" value={description} onChange={e => setDescription(e.target.value)} />
+
+            <label>Amount (₹)</label>
+            <input type="number" placeholder="e.g. 500" value={amount} onChange={e => setAmount(e.target.value)} min="1" />
+
+            <label>Type</label>
+            <div className="type-toggle">
+              <button type="button" className={type === "expense" ? "active expense-btn" : ""} onClick={() => { setType("expense"); setCategory("Food"); }}>📉 Expense</button>
+              <button type="button" className={type === "income"  ? "active income-btn"  : ""} onClick={() => { setType("income");  setCategory("Salary"); }}>📈 Income</button>
+            </div>
+
+            <label>Category</label>
+            <select value={category} onChange={e => setCategory(e.target.value)}>
+              {categories.map(cat => <option key={cat} value={cat}>{categoryEmoji[cat]} {cat}</option>)}
+            </select>
+
+            <button type="submit" className="submit-btn">Add Transaction</button>
+          </form>
+        </div>
+      );
+    }
+
+    // ── Transaction List ─────────────────────────────────────────
+    function TransactionList({ transactions, onDelete }) {
+      if (transactions.length === 0) {
+        return (
+          <div className="transaction-list">
+            <h3>📋 Transactions</h3>
+            <div className="empty-state">
+              <p>🪙 No transactions yet!</p>
+              <p>Add your first income or expense above.</p>
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div className="transaction-list">
+          <h3>📋 Transactions</h3>
+          {[...transactions].reverse().map(t => (
+            <div key={t.id} className={`transaction-item ${t.type === "income" ? "income-item" : "expense-item"}`}>
+              <div className="transaction-left">
+                <span className="transaction-emoji">{categoryEmoji[t.category] || "📦"}</span>
+                <div>
+                  <p className="transaction-desc">{t.description}</p>
+                  <p className="transaction-meta">{t.category} • {t.date}</p>
+                </div>
+              </div>
+              <div className="transaction-right">
+                <span className={`transaction-amount ${t.type === "income" ? "green" : "red"}`}>
+                  {t.type === "income" ? "+" : "-"}{financeService.formatRupees(t.amount)}
+                </span>
+                <button className="delete-btn" onClick={() => onDelete(t.id)}>🗑️</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // ── Category Summary ─────────────────────────────────────────
+    function CategorySummary({ transactions }) {
+      const summary = financeService.getCategorySummary();
+      const entries = Object.entries(summary);
+      if (entries.length === 0) return null;
+      const total = entries.reduce((s, [, v]) => s + v, 0);
+      return (
+        <div className="category-summary">
+          <h3>📊 Spending by Category</h3>
+          {entries.map(([cat, amount]) => {
+            const percent = Math.round((amount / total) * 100);
+            return (
+              <div key={cat} className="category-row">
+                <span>{categoryEmoji[cat]} {cat}</span>
+                <div className="progress-bar-bg">
+                  <div className="progress-bar-fill" style={{ width: percent + "%" }}></div>
+                </div>
+                <span className="category-amount">{financeService.formatRupees(amount)} ({percent}%)</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // ── Main App ─────────────────────────────────────────────────
+    function App() {
+      const [transactions, setTransactions] = useState(financeService.getAll());
+
+      function handleAdd(description, amount, type, category) {
+        setTransactions(financeService.addTransaction(description, amount, type, category));
+      }
+
+      function handleDelete(id) {
+        setTransactions(financeService.deleteTransaction(id));
+      }
+
+      return (
+        <div className="app">
+          <header className="app-header">
+            <h1>💰 Personal Finance Tracker</h1>
+            <p>Track your income &amp; expenses in Indian Rupees ₹</p>
+          </header>
+
+          <SummaryCards transactions={transactions} />
+
+          <div className="main-content">
+            <AddTransactionForm onAdd={handleAdd} />
+            <div className="right-panel">
+              <TransactionList transactions={transactions} onDelete={handleDelete} />
+              <CategorySummary transactions={transactions} />
+            </div>
+          </div>
+
+          <footer className="app-footer">
+            <p>Built with React + Angular-inspired Service Pattern 🚀</p>
+          </footer>
+        </div>
+      );
+    }
+
+    // Mount React app
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+  </script>
+</body>
+</html>
