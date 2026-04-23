@@ -23,3 +23,6 @@ Babel (runs JSX in browser)
 finance-tracker/
 └── index.html  ← entire app in one file
 Built for beginners — no terminal, no npm, just open and use.
+
+Vercel deployed : LINK :
+https://finance-tracker-xu28.vercel.app/
